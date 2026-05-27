@@ -1,5 +1,5 @@
 import fs from 'fs/promises';
-import type { NextFunction, Request, RequestHandler, Response } from 'express';
+import type { NextFunction, Response } from 'express';
 import Logger from '../config/logger';
 import ErrorCodes from '../const/ErrorCodes';
 import ErrorBase from '../errors/ErrorBase';
@@ -7,6 +7,8 @@ import { convertCsvToJson } from '../utils';
 import { validate } from '../validation/validate';
 import { csvItemSchema } from '../validation/schemas/CsvItemSchema';
 import { csvUploadFileSchema } from '../validation/schemas/CsvUploadFileSchema';
+import type { CsvItem } from '../types/CsvItem';
+import type { ValidatedRequest } from '../types/ValidatedRequest';
 
 const LOG = new Logger('csvUploadValidation.js');
 
@@ -22,11 +24,13 @@ const cleanupTempFile = async (filePath: string | undefined): Promise<void> => {
   });
 };
 
-const csvUploadValidationMiddleware: RequestHandler = async (
-  req: Request,
+type CsvUploadValidationRequest = ValidatedRequest<CsvItem[]>;
+
+const csvUploadValidationMiddleware = async (
+  req: CsvUploadValidationRequest,
   _res: Response,
   next: NextFunction,
-) => {
+): Promise<void> => {
   const uploadedFilePath = req.file?.path;
   const uploadedFileName = req.file?.originalname;
 
@@ -52,9 +56,10 @@ const csvUploadValidationMiddleware: RequestHandler = async (
       }),
     );
 
-    req.validatedCsvRows = rows;
+    req.validated = rows;
 
-    return next();
+    next();
+    return;
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
 
@@ -69,7 +74,7 @@ const csvUploadValidationMiddleware: RequestHandler = async (
     }
 
     await cleanupTempFile(uploadedFilePath);
-    return next(error);
+    next(error);
   }
 };
 
