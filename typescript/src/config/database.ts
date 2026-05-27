@@ -31,5 +31,8 @@ const sequelize = new Sequelize(DB_SCHEMA, DB_USER, DB_PW, {
   }
 });
 
+export const isSequelizeReady = (): boolean =>
+  typeof sequelize.define === 'function';
+
 export default sequelize;
 
