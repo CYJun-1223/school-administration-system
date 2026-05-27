@@ -5,6 +5,8 @@ class ErrorBase extends Error {
   constructor(message: string, errorCode: number, httpStatusCode: number) {
     super(message);
 
+    Object.setPrototypeOf(this, ErrorBase.prototype);
+
     this.errorCode = errorCode;
     this.httpStatusCode = httpStatusCode;
   }
