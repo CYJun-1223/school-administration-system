@@ -38,3 +38,27 @@ export interface CsvImportData {
   studentClassRelations: CsvStudentClassRelation[];
   teacherClassSubjectRelations: CsvTeacherClassSubjectRelation[];
 }
+
+export interface StudentListingRecord {
+  id: number;
+  name: string;
+  email: string;
+  isExternal: boolean;
+}
+
+export interface StudentListResponse {
+  count: number;
+  students: StudentListingRecord[];
+}
+
+export interface ExternalStudentRecord {
+  id: number;
+  name: string;
+  email: string;
+}
+
+export interface LocalStudentRecord {
+  id: number;
+  name: string;
+  email: string;
+}
