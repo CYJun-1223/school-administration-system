@@ -62,3 +62,19 @@ export interface LocalStudentRecord {
   name: string;
   email: string;
 }
+
+export interface WorkloadSubjectSummary {
+  subjectCode: string;
+  subjectName: string;
+  numberOfClasses: number;
+}
+
+export type WorkloadReport = Record<string, WorkloadSubjectSummary[]>;
+
+export interface WorkloadRow {
+  teacherEmail: string;
+  teacherName: string;
+  subjectCode: string;
+  subjectName: string;
+  numberOfClasses: number | string;
+}
