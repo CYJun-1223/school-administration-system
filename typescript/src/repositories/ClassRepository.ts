@@ -56,6 +56,22 @@ export const upsertClass = async (
   return schoolClass.id;
 };
 
+export const updateClassName = async (
+  classCode: string,
+  className: string,
+  transaction?: Transaction,
+): Promise<boolean> => {
+  const [updatedRows] = await SchoolClass.update(
+    { name: className },
+    {
+      where: { code: classCode },
+      transaction,
+    },
+  );
+
+  return updatedRows > 0;
+};
+
 export const countLocalStudentsByClassCode = async (
   classCode: string,
   transaction?: Transaction,
