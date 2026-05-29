@@ -1,7 +1,11 @@
 import { StatusCodes } from 'http-status-codes';
+import Logger from '../config/logger';
 import ErrorCodes from '../const/ErrorCodes';
 import ErrorBase from '../errors/ErrorBase';
 import { updateClassName as updateClassNameInRepository } from '../repositories/ClassRepository';
+import { getRequestId } from '../utils/requestContext';
+
+const LOG = new Logger('ClassService.js');
 
 export const updateClassName = async (
   classCode: string,
@@ -29,4 +33,9 @@ export const updateClassName = async (
       StatusCodes.NOT_FOUND,
     );
   }
+
+  LOG.info('Class name updated', {
+    requestId: getRequestId(),
+    classCode: normalizedClassCode,
+  });
 };

@@ -44,9 +44,13 @@ describe('requestLogger', () => {
 
     res.emit('finish');
 
-    expect(infoSpy).toHaveBeenCalledWith(expect.stringMatching(
-      /^HTTP request completed requestId=incoming-request-id method=GET path=\/health statusCode=200 durationMs=\d+$/,
-    ));
+    expect(infoSpy).toHaveBeenCalledWith('HTTP request completed', {
+      requestId: 'incoming-request-id',
+      method: 'GET',
+      path: '/health',
+      statusCode: 200,
+      durationMs: expect.any(Number),
+    });
     expect(warnSpy).not.toHaveBeenCalled();
     expect(errorSpy).not.toHaveBeenCalled();
   });
@@ -70,8 +74,12 @@ describe('requestLogger', () => {
 
     res.emit('finish');
 
-    expect(errorSpy).toHaveBeenCalledWith(expect.stringMatching(
-      /^HTTP request completed requestId=[0-9a-f]{32} method=POST path=\/api\/classes statusCode=500 durationMs=\d+$/,
-    ));
+    expect(errorSpy).toHaveBeenCalledWith('HTTP request completed', {
+      requestId: expect.stringMatching(/^[0-9a-f]{32}$/),
+      method: 'POST',
+      path: '/api/classes',
+      statusCode: 500,
+      durationMs: expect.any(Number),
+    });
   });
 });

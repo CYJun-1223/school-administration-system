@@ -1,6 +1,8 @@
 import { StatusCodes } from 'http-status-codes';
+import Logger from '../../config/logger';
 import ErrorCodes from '../../const/ErrorCodes';
 import ErrorBase from '../../errors/ErrorBase';
+import { runWithRequestContext } from '../../utils/requestContext';
 import { updateClassName } from '../ClassService';
 
 jest.mock('../../repositories/ClassRepository', () => ({
@@ -10,6 +12,7 @@ jest.mock('../../repositories/ClassRepository', () => ({
 import { updateClassName as updateClassNameInRepository } from '../../repositories/ClassRepository';
 
 const mockedUpdateClassName = updateClassNameInRepository as jest.Mock;
+const infoSpy = jest.spyOn(Logger.prototype, 'info');
 
 describe('updateClassName', () => {
   beforeEach(() => {
@@ -19,12 +22,18 @@ describe('updateClassName', () => {
   it('trims the inputs before updating the class name', async () => {
     mockedUpdateClassName.mockResolvedValue(true);
 
-    await updateClassName(' P1-1 ', ' P1 Integrity Updated ');
+    await runWithRequestContext({ requestId: 'request-123' }, async () => {
+      await updateClassName(' P1-1 ', ' P1 Integrity Updated ');
+    });
 
     expect(mockedUpdateClassName).toHaveBeenCalledWith(
       'P1-1',
       'P1 Integrity Updated',
     );
+    expect(infoSpy).toHaveBeenCalledWith('Class name updated', {
+      requestId: 'request-123',
+      classCode: 'P1-1',
+    });
   });
 
   it('rejects blank class codes or names with a bad request error', async () => {

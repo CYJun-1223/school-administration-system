@@ -11,11 +11,15 @@ const startApplication = async (retryCount: number) => {
   try {
     await sequelize.authenticate();
     App.listen(PORT, () => {
-      LOG.info(`Application started at http://localhost:${PORT}`);
+      LOG.info('Application started', { port: PORT });
     });
 
   } catch (e) {
-    LOG.error(e);
+    LOG.error('Failed to start application', {
+      errorName: (e as Error).name,
+      errorMessage: (e as Error).message,
+      stack: (e as Error).stack,
+    });
 
     const nextRetryCount = retryCount - 1;
     if (nextRetryCount > 0) {

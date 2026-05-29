@@ -29,10 +29,12 @@ const setAndWarnIfDifferent = <T extends Record<string, unknown>>(
   if (existing) {
     const changed = Object.keys(value).some((k) => existing[k] !== value[k]);
     if (changed) {
-      LOG.warn(
-        `Duplicate ${label} key="${key}" overwritten - ` +
-          `old=${JSON.stringify(existing)} new=${JSON.stringify(value)}`,
-      );
+      LOG.warn('Duplicate entry overwritten', {
+        label,
+        key,
+        old: existing,
+        new: value,
+      });
     }
   }
   map.set(key, value);

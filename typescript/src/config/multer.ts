@@ -29,9 +29,11 @@ const upload = multer({
     const isCsvFile = originalName.endsWith('.csv');
 
     if (!isCsvFile) {
-      LOG.warn(
-        `Rejected CSV upload fileName=${file.originalname} mimeType=${file.mimetype} reason=invalid-file-extension`,
-      );
+      LOG.warn('Rejected CSV upload', {
+        fileName: file.originalname,
+        mimeType: file.mimetype,
+        reason: 'invalid-file-extension',
+      });
 
       callback(CsvUploadError.invalidFileExtension());
 

@@ -7,6 +7,7 @@ import ErrorCodes from '../const/ErrorCodes';
 import ErrorBase from '../errors/ErrorBase';
 import { importCsvRows } from '../services/ImportService';
 import { prepareCsvImport } from '../services/CsvImportPreparer';
+import { getRequestId } from '../utils/requestContext';
 import type { CsvItem } from '../types/CsvItem';
 import type { ValidatedRequest } from '../types/ValidatedRequest';
 import type { RequestHandler } from 'express';
@@ -32,10 +33,7 @@ const dataImportHandler: RequestHandler = async (
   next,
 ) => {
   const startedAt = Date.now();
-
-  let uploadedFileName: string | undefined;
-  let importSummary: ImportSummary | undefined;
-  let completionStatus: 'success' | 'failure' = 'success';
+  const requestId = getRequestId();
 
   try {
     const data = req.validated;
@@ -48,17 +46,8 @@ const dataImportHandler: RequestHandler = async (
       );
     }
 
-    uploadedFileName = req.file?.originalname;
-
-    LOG.info(
-      `Accepted CSV upload file originalName=${uploadedFileName ?? 'missing'} mimetype=${req.file?.mimetype ?? 'missing'} size=${req.file?.size ?? 0} bytes`,
-    );
-    LOG.debug(
-      `Validated CSV rows originalName=${uploadedFileName ?? 'missing'} rowCount=${data.length}`,
-    );
-
     const importData = prepareCsvImport(data);
-    importSummary = {
+    const importSummary: ImportSummary = {
       rowCount: data.length,
       teacherCount: importData.teachers.length,
       studentCount: importData.students.length,
@@ -75,42 +64,20 @@ const dataImportHandler: RequestHandler = async (
         importData.teacherClassSubjectRelations.length,
     };
 
-    LOG.debug(
-      `Validated CSV rows originalName=${uploadedFileName ?? 'missing'} rowCount=${data.length}`,
-    );
-    LOG.info(
-      `Import summary summary=${JSON.stringify(importSummary)}`,
-    );
-    LOG.info(
-      `Importing CSV rows originalName=${uploadedFileName ?? 'missing'} rowCount=${data.length}`,
-    );
-
     await importCsvRows(importData);
-    LOG.info(
-      `Imported CSV rows originalName=${uploadedFileName ?? 'missing'} rowCount=${data.length}`,
-    );
+
+    LOG.info('CSV import completed', {
+      requestId,
+      originalName: req.file?.originalname ?? 'missing',
+      mimetype: req.file?.mimetype ?? 'missing',
+      size: req.file?.size ?? 0,
+      durationMs: Date.now() - startedAt,
+      ...importSummary,
+    });
 
     return res.sendStatus(StatusCodes.NO_CONTENT);
   } catch (error) {
-    completionStatus = 'failure';
-    const errorMessage = error instanceof Error ? error.message : String(error);
-
-    if (error instanceof ErrorBase && error.getHttpStatusCode() < 500) {
-      LOG.warn(
-        `CSV upload rejected method=${req.method} path=${req.originalUrl} file=${uploadedFileName ?? 'missing'} reason=${errorMessage}`,
-      );
-    } else {
-      LOG.error(
-        `CSV upload failed method=${req.method} path=${req.originalUrl} file=${uploadedFileName ?? 'missing'} error=${errorMessage}`,
-      );
-    }
-
     next(error);
-  } finally {
-    const durationMs = Date.now() - startedAt;
-    LOG.info(
-      `CSV upload completed status=${completionStatus} durationMs=${durationMs} file=${uploadedFileName ?? 'missing'} summary=${importSummary ? JSON.stringify(importSummary) : 'unavailable'}`,
-    );
   }
 };
 DataImportController.post(

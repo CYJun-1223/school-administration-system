@@ -18,9 +18,10 @@ const cleanupTempFile = async (filePath: string | undefined): Promise<void> => {
   }
 
   await fs.unlink(filePath).catch((err) => {
-    LOG.warn(
-      `Unable to remove temporary CSV file path=${filePath} error=${String(err)}`,
-    );
+    LOG.warn('Unable to remove temporary CSV file', {
+      filePath,
+      error: String(err),
+    });
   });
 };
 
@@ -64,13 +65,15 @@ const csvUploadValidationMiddleware = async (
     const errorMessage = error instanceof Error ? error.message : String(error);
 
     if (error instanceof ErrorBase && error.getHttpStatusCode() < 500) {
-      LOG.warn(
-        `CSV upload validation rejected file=${uploadedFileName ?? 'missing'} reason=${errorMessage}`,
-      );
+      LOG.warn('CSV upload validation rejected', {
+        file: uploadedFileName ?? 'missing',
+        reason: errorMessage,
+      });
     } else {
-      LOG.error(
-        `CSV upload validation failed file=${uploadedFileName ?? 'missing'} error=${errorMessage}`,
-      );
+      LOG.error('CSV upload validation failed', {
+        file: uploadedFileName ?? 'missing',
+        error: errorMessage,
+      });
     }
 
     await cleanupTempFile(uploadedFilePath);
